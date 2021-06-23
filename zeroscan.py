@@ -55,13 +55,17 @@ def main():
         rpc_con = zl.run()
         if rpc_con != 0xc0000022:
           break
-      if rpc_con:
-        # Debug - print succesful RPC connection.
-        logging.debug(f'RPC Connection: {rpc_con}')
-        r.console.print(f'{hostname} {ipaddress} VULNERABLE\n')
+     # DEV
+      if not rpc_con:
+        r.console.print(f'{hostname} [white]{ipaddress}[/white] [green]NOT VULNERABLE\n')
       else:
-        # DEV - add 'No route to host'
-        r.console.print(f'{hostname} {ipaddress} NOT VULNERABLE\n')
+        if str(rpc_con) == 'Could not connect: [Errno 113] No route to host':
+          r.console.print(f'{hostname} [white]{ipaddress}[/white] [orange3]{str(rpc_con)}\n')
+        elif str(rpc_con) == 'Could not connect: [Errno 111] Connection refused':
+          r.console.print(f'{hostname} [white]{ipaddress}[/white] [dark_orange3]{str(rpc_con)}\n')
+        else:
+          # print(str(rpc_con))
+          r.console.print(f'{hostname} [white]{ipaddress}[/white] [red]VULNERABLE\n')
 
 
 if __name__ == '__main__':
