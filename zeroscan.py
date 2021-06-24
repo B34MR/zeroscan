@@ -19,7 +19,7 @@ def readfile(filepath):
 
 
 def main():
-  ''' Main Func'''
+  ''' Main func '''
   
   MAX_ATTEMPTS = 2000
   targetlst = []
@@ -42,36 +42,53 @@ def main():
   # Debug - print target(s).
   [logging.debug(f'Target(s): {target}') for target in targetlst]
 
-  for target in targetlst:
-    hostname, ipaddress = target
+  # Table title.
+  table = r.Table(title="[t.title]Zeroscan", box=r.box.DOUBLE_EDGE, style='table')
+  # Table Columns.
+  table.add_column('Hostname', justify='left', no_wrap=True, style='t.col1')
+  table.add_column('IP Address', justify='left', no_wrap=True,  style='t.col2')
+  table.add_column('CVE-2020-1472', justify='left', no_wrap=True, style='t.col3')
+  # table.add_column('NULL Session')
+  # table.add_column('SMB')
+  # table.add_column('PrinterBug')
+  # table.add_column('LDAPS')
 
-    # Zeroscan - instance init.
-    zl = zerologon.ZeroLogon(ipaddress, hostname)
+  try:
+    for target in targetlst:
+      hostname, ipaddress = target
 
-    # Zerologon - Launch authentication attack.
-    with r.console.status(status=f'[status.text]Performing authentication attempts...') as status:
-      rpc_con = None
-      for attempt in range(0, MAX_ATTEMPTS):  
-        rpc_con = zl.run()
-        if rpc_con != 0xc0000022:
-          break
-     # DEV
-      if not rpc_con:
-        r.console.print(f'{hostname} [white]{ipaddress}[/white] [green]NOT VULNERABLE\n')
-      else:
-        if str(rpc_con) == 'Could not connect: [Errno 113] No route to host':
-          r.console.print(f'{hostname} [white]{ipaddress}[/white] [orange3]{str(rpc_con)}\n')
-        elif str(rpc_con) == 'Could not connect: [Errno 111] Connection refused':
-          r.console.print(f'{hostname} [white]{ipaddress}[/white] [dark_orange3]{str(rpc_con)}\n')
+      # Zerologon - init instance and launch authentication attack.
+      zl = zerologon.ZeroLogon(ipaddress, hostname)
+      with r.console.status(spinner='bouncingBall', status=f'[status.text]CVE-2020-147 {hostname.upper()} {ipaddress}') as status:
+        rpc_con = None
+        for attempt in range(0, MAX_ATTEMPTS):
+          rpc_con = zl.run()
+          if rpc_con != 0xc0000022:
+            break
+        r.console.print(f'{hostname.upper()} {ipaddress}')
+
+        # Stdout parser.
+        if not rpc_con:
+          # Not Vulnerable.
+          table.add_row(f'{hostname.upper()}', f'{ipaddress}', f'NOT VULNERABLE')
         else:
-          # print(str(rpc_con))
-          r.console.print(f'{hostname} [white]{ipaddress}[/white] [red]VULNERABLE\n')
-
+          # No route to host.
+          if str(rpc_con) == 'Could not connect: [Errno 113] No route to host':
+            table.add_row(f'{hostname.upper()}', f'{ipaddress}', f'{str(rpc_con)}')
+          # Connection refused.
+          elif str(rpc_con) == 'Could not connect: [Errno 111] Connection refused':
+            table.add_row(f'{hostname.upper()}', f'{ipaddress}', f'{str(rpc_con)}')
+          # Vulnerable.
+          else:
+            table.add_row(f'{hostname.upper()}', f'{ipaddress}', f'[red]VULNERABLE')
+    
+  except KeyboardInterrupt:
+    print(f'\nQuit: detected [CTRL-C]')
+  
+  # Render table.
+  r.console.print('\n')
+  r.console.print(table)
+  r.console.print('\n')
 
 if __name__ == '__main__':
   main()
-
-# Dev - comments
-# zerologon class - refactor
-# main - add docstrings, table, fix stoud.
-# richard -  add theme.
