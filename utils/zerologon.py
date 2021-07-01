@@ -46,8 +46,11 @@ class ZeroLogon():
     except nrpc.DCERPCSessionError as e:
       # Debug print -  RPC response code.
       logging.debug(f'{e}')
+      # print(e.get_error_code())
       # RPC response code: NRPC SessionError: code: 0xc0000022 - STATUS_ACCESS_DENIED.
       if e.get_error_code() == 0xc0000022:
+        # DEV
+        # print(e.get_error_code())
         return 0xc0000022
       else:
         # Debug print -  RPC response code.

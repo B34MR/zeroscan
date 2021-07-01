@@ -47,7 +47,7 @@ def main():
   # Table Columns.
   table.add_column('Hostname', justify='left', no_wrap=True, style='t.col1')
   table.add_column('IP Address', justify='left', no_wrap=True,  style='t.col2')
-  table.add_column('CVE-2020-1472', justify='left', no_wrap=True, style='t.col3')
+  table.add_column('CVE-2020-1472', justify='left', no_wrap=False, style='t.col3')
   # table.add_column('NULL Session')
   # table.add_column('SMB')
   # table.add_column('PrinterBug')
@@ -61,27 +61,26 @@ def main():
       zl = zerologon.ZeroLogon(ipaddress, hostname)
       with r.console.status(spinner='bouncingBall', status=f'[status.text]CVE-2020-147 {hostname.upper()} {ipaddress}') as status:
         rpc_con = None
+        counter = 0
         for attempt in range(0, MAX_ATTEMPTS):
           rpc_con = zl.run()
+          counter += 1
           if rpc_con != 0xc0000022:
             break
-        r.console.print(f'{hostname.upper()} {ipaddress}')
+        # Print - scanner log.
+        r.console.print(f'{hostname.upper()} {ipaddress} [i](authentication attempts: {counter})')
+
+        # DEV
+        # Could not connect: [Errno 113] No route to host
 
         # Stdout parser.
-        if not rpc_con:
-          # Not Vulnerable.
-          table.add_row(f'{hostname.upper()}', f'{ipaddress}', f'NOT VULNERABLE')
+        if rpc_con == 0xc0000022:
+          table.add_row(f'{hostname.upper()}', f'{ipaddress}', f'{rpc_con}' if args.rpcmessage else f'[green]NOT VULNERABLE')
+        elif 'impacket.dcerpc.v5.rpcrt.DCERPC_v5' in str(rpc_con):
+          table.add_row(f'{hostname.upper()}', f'{ipaddress}', f'{rpc_con}' if args.rpcmessage else  f'[red]VULNERABLE')
         else:
-          # No route to host.
-          if str(rpc_con) == 'Could not connect: [Errno 113] No route to host':
-            table.add_row(f'{hostname.upper()}', f'{ipaddress}', f'{str(rpc_con)}')
-          # Connection refused.
-          elif str(rpc_con) == 'Could not connect: [Errno 111] Connection refused':
-            table.add_row(f'{hostname.upper()}', f'{ipaddress}', f'{str(rpc_con)}')
-          # Vulnerable.
-          else:
-            table.add_row(f'{hostname.upper()}', f'{ipaddress}', f'[red]VULNERABLE')
-    
+          table.add_row(f'{hostname.upper()}', f'{ipaddress}', f'{rpc_con}' if args.rpcmessage else f'N/A')
+
   except KeyboardInterrupt:
     print(f'\nQuit: detected [CTRL-C]')
   

@@ -34,8 +34,9 @@ Usage:
   parser.add_argument('-tf', dest='targetfile', required=False, type=str, action='store', metavar='TARGETSFILE', help='File that contains one target per line using netbiosname and ipaddress. I.e "dc01 192.168.1.10"')
   # Secondary Options.
   optional_group = parser.add_argument_group('Secondary options')
+  optional_group.add_argument('-r', '--rpc-message', dest='rpcmessage', action='store_true', help='turn on RPC response meesages, helpful when debugging')
+  optional_group.add_argument('-v', '--verbose', action='store_true', help='turn on verbosity, helpful when debugging')
   optional_group.add_argument('-h','--help', action='help', help='Show this help message and exit')
-  optional_group.add_argument('-v', '--verbose', action='store_true', help='Configure verbosity level')
   # Print 'help' if no options are defined.
   if len(sys.argv) == 1:
     parser.print_help(sys.stderr)
