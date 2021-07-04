@@ -32,9 +32,9 @@ def main():
     hostname, ipaddress = args.target
     targetlst.append([hostname.rstrip('$'), ipaddress])
   
-  # Args - multiple targets.
-  if args.targetfile:
-    lines = readfile(args.targetfile)
+  # Args - inputlist.
+  if args.inputlist:
+    lines = readfile(args.inputlist)
     for line in lines:
       hostname, ipaddress = line.split()
       targetlst.append([hostname.rstrip('$'), ipaddress])
@@ -48,38 +48,32 @@ def main():
   table.add_column('Hostname', justify='left', no_wrap=True, style='t.col1')
   table.add_column('IP Address', justify='left', no_wrap=True,  style='t.col2')
   table.add_column('CVE-2020-1472', justify='left', no_wrap=False, style='t.col3')
-  # table.add_column('NULL Session')
-  # table.add_column('SMB')
-  # table.add_column('PrinterBug')
-  # table.add_column('LDAPS')
 
   try:
+    r.console.print(f'[bright_white]CVE-2020-147')
     for target in targetlst:
       hostname, ipaddress = target
-
       # Zerologon - init instance and launch authentication attack.
       zl = zerologon.ZeroLogon(ipaddress, hostname)
-      with r.console.status(spinner='bouncingBall', status=f'[status.text]CVE-2020-147 {hostname.upper()} {ipaddress}') as status:
+      with r.console.status(spinner='bouncingBall', status=f'[status.text]{hostname.upper()} {ipaddress}') as status:
         rpc_con = None
+        # Counter - for authentication attempts.
         counter = 0
         for attempt in range(0, MAX_ATTEMPTS):
           rpc_con = zl.run()
           counter += 1
           if rpc_con != 0xc0000022:
             break
-        # Print - scanner log.
-        r.console.print(f'{hostname.upper()} {ipaddress} [i](authentication attempts: {counter})')
-
-        # DEV
-        # Could not connect: [Errno 113] No route to host
-
-        # Stdout parser.
+        
+        # Print - authentication attempt for single target.
+        r.console.print(f'[grey58]{hostname.upper()} {ipaddress} [grey37]- auth attempts: {counter}')
+        # Table - insert rpc response code into table.
         if rpc_con == 0xc0000022:
           table.add_row(f'{hostname.upper()}', f'{ipaddress}', f'{rpc_con}' if args.rpcmessage else f'[green]NOT VULNERABLE')
         elif 'impacket.dcerpc.v5.rpcrt.DCERPC_v5' in str(rpc_con):
           table.add_row(f'{hostname.upper()}', f'{ipaddress}', f'{rpc_con}' if args.rpcmessage else  f'[red]VULNERABLE')
         else:
-          table.add_row(f'{hostname.upper()}', f'{ipaddress}', f'{rpc_con}' if args.rpcmessage else f'N/A')
+          table.add_row(f'{hostname.upper()}', f'{ipaddress}', f'{rpc_con}' if args.rpcmessage else f'NA')
 
   except KeyboardInterrupt:
     print(f'\nQuit: detected [CTRL-C]')
