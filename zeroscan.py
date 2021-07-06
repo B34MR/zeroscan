@@ -50,7 +50,7 @@ def main():
   table.add_column('CVE-2020-1472', justify='left', no_wrap=False, style='t.col3')
 
   try:
-    r.console.print(f'[bright_white]CVE-2020-147')
+    r.console.print(f'[bright_white]CVE-2020-1472')
     for target in targetlst:
       hostname, ipaddress = target
       # Zerologon - init instance and launch authentication attack.
