@@ -53,3 +53,9 @@ Secondary options:
 **View RPC Reponses:**
 
 ![Tooltime Demo](demo/zeroscan-rpcresponse.gif)
+
+**Zeroscan + GetDomainController:**
+<br>
+For a more automated approach use Zeroscan along with GetDomainController 'https://github.com/NickSanzotta/GetDomainController'
+
+![Tooltime Demo](demo/zeroscan-getdc.gif)
