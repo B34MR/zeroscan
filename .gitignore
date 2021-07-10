@@ -1,3 +1,9 @@
+# App Specific
+database.db
+zeroscan.db
+outputfiles/
+paused.conf
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
