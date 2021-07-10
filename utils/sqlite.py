@@ -15,17 +15,17 @@ def create_table_zeroscan():
 				Hostname text,
 				IPAddress text,
 				CVE_2020_1472 text,
-				SMBv2_Signing text
+				SMBv2_Security text
 				)""")
 	except sqlite3.OperationalError:
 		pass
 
 
-def insert_data(hostname, ipaddress, CVE_2020_1472, smbv2_signing):
+def insert_data(hostname, ipaddress, CVE_2020_1472, smbv2_security):
 	''' Insert data '''
 	with conn:
-		c.execute("INSERT INTO Zeroscan VALUES (:hostname, :ipaddress, :CVE_2020_1472, :smbv2_signing)",
-		 {'hostname': hostname, 'ipaddress': ipaddress, 'CVE_2020_1472': CVE_2020_1472, 'smbv2_signing': smbv2_signing})
+		c.execute("INSERT INTO Zeroscan VALUES (:hostname, :ipaddress, :CVE_2020_1472, :smbv2_security)",
+		 {'hostname': hostname, 'ipaddress': ipaddress, 'CVE_2020_1472': CVE_2020_1472, 'smbv2_security': smbv2_security})
 
 
 def update_CVE_2020_1472(hostname, ipaddress, CVE_2020_1472):
@@ -35,11 +35,11 @@ def update_CVE_2020_1472(hostname, ipaddress, CVE_2020_1472):
 		 {'hostname': hostname, 'ipaddress': ipaddress, 'CVE_2020_1472': CVE_2020_1472})
 
 
-def update_smbv2_signing(ipaddress, smbv2_signing):
+def update_smbv2_security(ipaddress, smbv2_security):
 	''' Update SMBv2 Signing '''
 	with conn:
-		c.execute("UPDATE Zeroscan SET smbv2_signing=:smbv2_signing WHERE ipaddress=:ipaddress",
-		 {'ipaddress': ipaddress, 'smbv2_signing': smbv2_signing})
+		c.execute("UPDATE Zeroscan SET smbv2_security=:smbv2_security WHERE ipaddress=:ipaddress",
+		 {'ipaddress': ipaddress, 'smbv2_security': smbv2_security})
 
 
 def get_data(tablename):
