@@ -41,7 +41,6 @@ Usage:
   optional_group.add_argument('-v', '--verbose', action='store_true', help='Turn on verbosity, helpful when debugging.')
   optional_group.add_argument('-h','--help', action='help', help='Show this help message and exit.')
   # DEV
-  optional_group.add_argument('-n', '--nmap', dest='nmap', action='store_true', help='')
   optional_group.add_argument('-d', '--drop-table', dest='droptable', action='store_true', help='')
 
   # Print 'help' if no options are defined.
