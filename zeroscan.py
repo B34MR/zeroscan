@@ -109,7 +109,7 @@ def main():
       hostname, ipaddress = target  
       # DEV, relocate sqlite insert statment.
       # Sqlite - insert target data.
-      db.insert_data(hostname.upper(), ipaddress, '', '', '')
+      db.insert_data(hostname.upper(), ipaddress, None, None, None, None)
       
       # Zerologon - init instance and launch authentication attack.
       zl = zerologon.ZeroLogon(ipaddress, hostname)
@@ -132,14 +132,14 @@ def main():
     print(f'\nQuit: detected [CTRL-C]')
 
   
-  # Print-Services mode.
+  # MS-PAR/MS-RPRN
   try:
     version_check('Impacket', \
       rpcdumpper.Rpcdumpper.get_version(), impacket_stablever)
     # Rpcdumpper - print cmd.
     print(f"\n{rpcdumpper.Rpcdumpper('').cmd}ipaddress")
     # Heading 2 - scan type.
-    r.console.print(f'[grey27]Print-Services')
+    r.console.print(f'[grey27]MS-PAR/MS-RPRN')
     
     for target in targetlst:
       hostname, ipaddress = target
@@ -151,9 +151,10 @@ def main():
         is_mspar = rpcdump.is_substring(results, 'MS-PAR')
         is_msrprn = rpcdump.is_substring(results, 'MS-RPRN')
         # Sqlite - update table:zeroscan, column:print_services. 
-        db.update_print_services(ipaddress, f'MS-PAR: {is_mspar}, MS-RPRN: {is_msrprn}')
+        db.update_MS_PAR(ipaddress, str(is_mspar))
+        db.update_MS_RPRN(ipaddress, str(is_msrprn))
 
-        r.console.print(f'[grey58]{hostname} {ipaddress}[grey37] - MS-PAR: {is_mspar}, MS-RPRN: {is_msrprn}')
+        r.console.print(f'[grey58]{hostname.upper()} {ipaddress}[grey37] - MS-PAR: {is_mspar}, MS-RPRN: {is_msrprn}')
     print('\n')
   except KeyboardInterrupt as e:
     print(f'\nQuit: detected [CTRL-C]')
@@ -182,43 +183,49 @@ def main():
           db.update_smbv2_security(i[0], i[1])
           # Print nse-scan results to stdout.
           r.console.print(f'[grey58]{i[0]} [grey37]- {i[1].upper()}')
+        else:
+          print(i[0], i[1])
       print('\n')
   except KeyboardInterrupt:
     print(f'\nQuit: detected [CTRL-C]')
 
 
   # Table title.
-  table = r.Table(title="[t.title]Zeroscan Database", box=r.box.DOUBLE_EDGE, title_style='table')
+  table = r.Table(title="[t.title]Zeroscan Database", box=r.box.DOUBLE_EDGE, style='table')
   # Table Columns.
   table.add_column('[white]Hostname', justify='left', no_wrap=True, style='t.col1')
   table.add_column('[white]IP Address', justify='left', no_wrap=True,  style='t.col2')
   table.add_column('[white]CVE-2020-1472', justify='left', no_wrap=False, style='t.col3')
-  table.add_column('[white]Print Services', justify='left', no_wrap=False, style='t.col4')
-  table.add_column('[white]SMBv2 Security', justify='left', no_wrap=False, style='t.col5')
+  table.add_column('[white]MS_PAR', justify='left', no_wrap=False, style='t.col4')
+  table.add_column('[white]MS_RPRN', justify='left', no_wrap=False, style='t.col5')
+  table.add_column('[white]SMBv2 Security', justify='left', no_wrap=False, style='t.col6')
   # Pretty Print Table.  
   table_data = db.get_data('zeroscan')
-  # i[0]:hostname, i[1]:ipaddress, i[2]:CVE_2020_1472, i[3]print_services, i[4]:smbv2_security.
+  # i[0]:hostname, i[1]:ipaddress, i[2]:CVE_2020_1472, i[3]MS_PAR, i[4]MS_RPRN, i[5]:smbv2_security.
   for i in table_data:
-    print(i)
+    logging.debug(i)
     # RPC code '0xc0000022' is equivalent to 'str:3221225506'
     if i[2] == '3221225506':
       table.add_row(i[0],\
         i[1], \
-        i[2] if args.rpcmessage else '[grey58]NOT VULNERABLE',\
-        i[3],
-        i[4] if i[4] == 'Message signing enabled and required' else f'[red]{i[4]}')
+        i[2] if args.rpcmessage else 'NOT VULNERABLE',\
+        i[3] if i[3] == 'False' else f'[red]{i[3]}',
+        i[4] if i[4] == 'False' else f'[red]{i[4]}',
+        i[5] if i[5] == 'Message signing enabled but not required' else f'[grey58]{i[5]}')
     elif 'impacket.dcerpc.v5.rpcrt.DCERPC_v5' in i[2]:
       table.add_row(i[0],\
         i[1],\
         i[2] if args.rpcmessage else '[red]VULNERABLE',\
-        i[3],
-        i[4] if i[4] == 'Message signing enabled and required' else f'[red]{i[4]}')
+        i[3] if i[3] == 'False' else f'[red]{i[3]}',
+        i[4] if i[4] == 'False' else f'[red]{i[4]}',
+        i[5] if i[5] == 'Message signing enabled but not required' else f'[grey58]{i[5]}')
     else:
       table.add_row(i[0],\
         i[1],\
         i[2] if args.rpcmessage else 'NA',\
-        i[3],
-        i[4] if i[4] == 'Message signing enabled and required' else f'[red]{i[4]}')
+        i[3] if i[3] == 'False' else f'[red]{i[3]}',
+        i[4] if i[4] == 'False' else f'[red]{i[4]}',
+        i[5] if i[5] == 'Message signing enabled but not required' else f'[grey58]{i[5]}')
   # Render table.
   r.console.print('\n')
   r.console.print(table)
