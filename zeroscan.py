@@ -195,37 +195,43 @@ def main():
   # Table Columns.
   table.add_column('[white]Hostname', justify='left', no_wrap=True, style='t.col1')
   table.add_column('[white]IP Address', justify='left', no_wrap=True,  style='t.col2')
-  table.add_column('[white]CVE-2020-1472', justify='left', no_wrap=False, style='t.col3')
+  table.add_column('[white]CVE_2020_1472', justify='left', no_wrap=False, style='t.col3')
   table.add_column('[white]MS_PAR', justify='left', no_wrap=False, style='t.col4')
   table.add_column('[white]MS_RPRN', justify='left', no_wrap=False, style='t.col5')
-  table.add_column('[white]SMBv2 Security', justify='left', no_wrap=False, style='t.col6')
+  table.add_column('[white]SMBv2_Signing', justify='left', no_wrap=False, style='t.col6')
   # Pretty Print Table.  
   table_data = db.get_data('zeroscan')
-  # i[0]:hostname, i[1]:ipaddress, i[2]:CVE_2020_1472, i[3]MS_PAR, i[4]MS_RPRN, i[5]:smbv2_security.
-  for i in table_data:
-    logging.debug(i)
-    # RPC code '0xc0000022' is equivalent to 'str:3221225506'
-    if i[2] == '3221225506':
-      table.add_row(i[0],\
-        i[1], \
-        i[2] if args.rpcmessage else 'NOT VULNERABLE',\
-        i[3] if i[3] == 'False' else f'[red]{i[3]}',
-        i[4] if i[4] == 'False' else f'[red]{i[4]}',
-        i[5] if i[5] == 'Message signing enabled but not required' else f'[grey58]{i[5]}')
-    elif 'impacket.dcerpc.v5.rpcrt.DCERPC_v5' in i[2]:
-      table.add_row(i[0],\
-        i[1],\
-        i[2] if args.rpcmessage else '[red]VULNERABLE',\
-        i[3] if i[3] == 'False' else f'[red]{i[3]}',
-        i[4] if i[4] == 'False' else f'[red]{i[4]}',
-        i[5] if i[5] == 'Message signing enabled but not required' else f'[grey58]{i[5]}')
+  
+  # Table row and column indicies listed below.
+  # row[0]:hostname, row[1]:ipaddress, row[2]:CVE_2020_1472, row[3]MS_PAR, row[4]MS_RPRN, row[5]:smbv2_security.
+  for tup in table_data:
+    # Convert tuple to list.
+    row = list(tup)
+    # Print raw table data.
+    if args.rpcmessage:
+      table.add_row(row[0], row[1], row[2], row[3], row[4], row[5]) 
+    # Pretty print table data.
     else:
-      table.add_row(i[0],\
-        i[1],\
-        i[2] if args.rpcmessage else 'NA',\
-        i[3] if i[3] == 'False' else f'[red]{i[3]}',
-        i[4] if i[4] == 'False' else f'[red]{i[4]}',
-        i[5] if i[5] == 'Message signing enabled but not required' else f'[grey58]{i[5]}')
+      # Column 2.
+      if row[2] == '3221225506':
+         row[2] = 'NOT VULNERABLE'
+      elif 'impacket.dcerpc.v5.rpcrt.DCERPC_v5' in row[2]:
+        row[2] = '[red]VULNERABLE'
+      else:
+        row[2] = '[grey19]NA'
+      # Column 3.
+      if row[3] == 'True':
+        row[3] = f'[red]{row[3]}'
+      # Column 4.
+      if row[4] == 'True':
+        row[4] = f'[red]{row[4]}'
+      # Column 5.
+      if row[5] == 'Message signing enabled but not required':
+        row[5] = f'[red]{row[5]}'
+      if row[5] == None:
+        row[5] = f'[grey19]NA'
+      # Create table row.
+      table.add_row(row[0], row[1], row[2], row[3], row[4], row[5])
   # Render table.
   r.console.print('\n')
   r.console.print(table)
