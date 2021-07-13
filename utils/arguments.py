@@ -24,6 +24,8 @@ Zeroscan
 Usage: 
   python3 zeroscan.py -t dc01 192.168.1.10
   python3 zeroscan.py -iL /path/to/targetfile.txt
+  python3 zeroscan.py -iL /path/to/targetfile.txt --database
+  python3 zeroscan.py -iL /path/to/targetfile.txt --drop-table
   python3 zeroscan.py -iL /path/to/targetfile.txt -r 
   python3 zeroscan.py -iL /path/to/targetfile.txt -v
   
@@ -37,12 +39,12 @@ Usage:
   parser.add_argument('-iL', dest='inputlist', required=False, type=str, action='store', metavar='TARGETSFILE', help='File that contains one target per line using netbiosname and ipaddress. I.e "dc01 192.168.1.10"')
   # Secondary Options.
   optional_group = parser.add_argument_group('Secondary options')
-  optional_group.add_argument('-r', '--rpc-message', dest='rpcmessage', action='store_true', help='Turn on RPC response messages, helpful when troubleshooting.')
-  optional_group.add_argument('-v', '--verbose', action='store_true', help='Turn on verbosity, helpful when debugging.')
+  optional_group.add_argument('--database', dest='database', default='.database.db', metavar='DATABASE' ,help='Filepath for database file.')
+  optional_group.add_argument('--drop-table', dest='droptable', action='store_true', help='Drops database table.')
+  optional_group.add_argument('-r', '--rpc-message', dest='rpcmessage', action='store_true', help='Turn on RPC response messages for CVE-2020-1472, helpful when troubleshooting connectivity issues.')
+  optional_group.add_argument('-v', '--verbose', action='store_true', help='Turn on verbosity, helpful when debugging code.')
   optional_group.add_argument('-h','--help', action='help', help='Show this help message and exit.')
   # DEV
-  optional_group.add_argument('-d', '--drop-table', dest='droptable', action='store_true', help='')
-
   # Print 'help' if no options are defined.
   if len(sys.argv) == 1:
     parser.print_help(sys.stderr)
