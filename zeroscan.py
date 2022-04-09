@@ -39,8 +39,8 @@ dirs = [mkdir.mkdir(directory) for directory in directories]
 
 
 def version_check(mystr, currentver, stablever):
-  ''' 
-  Returns if app version is supported or not to stdout. 
+  '''
+  Returns if app version is supported or not to stdout.
   arg(s):mystr:str, currentver:str, stablever:str '''
 
   if currentver == stablever:
@@ -50,8 +50,8 @@ def version_check(mystr, currentver, stablever):
 
 
 def readfile(filepath):
-  ''' 
-  Return contents from a file. 
+  '''
+  Return contents from a file.
   Arg(s):filepath:str'''
 
   with open(filepath, 'r+') as f1:
@@ -62,11 +62,11 @@ def readfile(filepath):
 
 def main():
   ''' Main func '''
-  
+
   # Const.
   MAX_ATTEMPTS = 2000
   targetlst = []
-  
+
   # Args - init args.
   args = arguments.parse_args()
   # Args - single target.
@@ -91,7 +91,7 @@ def main():
   with open(targetfilepath , 'w+') as f1:
     for line in lines:
       f1.write(f'{line}\n')
-  
+
   # Debug - print target(s).
   [logging.debug(f'Target(s): {target}') for target in targetlst]
 
@@ -104,13 +104,13 @@ def main():
     print(f"\n{' '.join(sys.argv[::])}")
     # Heading 2 - scan type.
     r.console.print(f'[grey27]CVE-2020-1472')
-    
+
     for target in targetlst:
-      hostname, ipaddress = target  
+      hostname, ipaddress = target
       # DEV, relocate sqlite insert statment.
       # Sqlite - insert target data.
       db.insert_data(hostname.upper(), ipaddress, None, None, None, None)
-      
+
       # Zerologon - init instance and launch authentication attack.
       zl = zerologon.ZeroLogon(ipaddress, hostname)
       with r.console.status(spinner='bouncingBall', status=f'[status.text]{hostname.upper()} {ipaddress}') as status:
@@ -122,7 +122,7 @@ def main():
           counter += 1
           if rpc_con != 0xc0000022:
             break
-        
+
         # Print - authentication attempts.
         r.console.print(f'[grey58]{hostname.upper()} {ipaddress} [grey37] - AUTH-ATTEMPTS: {counter}')
         # Sqlite - update table:zeroscan, column:cve-2020-1472
@@ -131,7 +131,7 @@ def main():
   except KeyboardInterrupt:
     print(f'\nQuit: detected [CTRL-C]')
 
-  
+
   # MS-PAR/MS-RPRN
   try:
     version_check('Impacket', \
@@ -140,7 +140,7 @@ def main():
     print(f"\n{rpcdumpper.Rpcdumpper('').cmd}ipaddress")
     # Heading 2 - scan type.
     r.console.print(f'[grey27]MS-PAR/MS-RPRN')
-    
+
     for target in targetlst:
       hostname, ipaddress = target
       # Rpcdumpper - init and launch scan.
@@ -150,7 +150,7 @@ def main():
         # Rcpdumpper - Get results:bool and update database.
         is_mspar = rpcdump.is_substring(results, 'MS-PAR')
         is_msrprn = rpcdump.is_substring(results, 'MS-RPRN')
-        # Sqlite - update table:zeroscan, column:print_services. 
+        # Sqlite - update table:zeroscan, column:print_services.
         db.update_MS_PAR(ipaddress, str(is_mspar))
         db.update_MS_RPRN(ipaddress, str(is_msrprn))
 
@@ -179,7 +179,7 @@ def main():
       # Omit None results and print to stdout.
       for i in xmlresults:
         if i[1] != None:
-          # Sqlite - insert xmlfile results (i[0]:ipaddress, i[1]:nseoutput). 
+          # Sqlite - insert xmlfile results (i[0]:ipaddress, i[1]:nseoutput).
           db.update_smbv2_security(i[0], i[1])
           # Print nse-scan results to stdout.
           r.console.print(f'[grey58]{i[0]} [grey37]- {i[1].upper()}')
@@ -199,9 +199,9 @@ def main():
   table.add_column('[white]MS_PAR', justify='left', no_wrap=False, style='t.col4')
   table.add_column('[white]MS_RPRN', justify='left', no_wrap=False, style='t.col5')
   table.add_column('[white]SMBv2_Signing', justify='left', no_wrap=False, style='t.col6')
-  # Pretty Print Table.  
+  # Pretty Print Table.
   table_data = db.get_data('zeroscan')
-  
+
   # Table row and column indicies listed below.
   # row[0]:hostname, row[1]:ipaddress, row[2]:CVE_2020_1472, row[3]MS_PAR, row[4]MS_RPRN, row[5]:smbv2_security.
   for tup in table_data:
@@ -209,13 +209,13 @@ def main():
     row = list(tup)
     # Print raw table data.
     if args.rpcmessage:
-      table.add_row(row[0], row[1], row[2], row[3], row[4], row[5]) 
+      table.add_row(row[0], row[1], row[2], row[3], row[4], row[5])
     # Pretty print table data.
     else:
       # Column 2.
       if row[2] == '3221225506':
          row[2] = 'NOT VULNERABLE'
-      elif 'impacket.dcerpc.v5.rpcrt.DCERPC_v5' in row[2]:
+      elif row[2] is not None and 'impacket.dcerpc.v5.rpcrt.DCERPC_v5' in row[2]:
         row[2] = '[red]VULNERABLE'
       else:
         row[2] = '[grey19]NA'
